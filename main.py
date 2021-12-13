@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
 
 request_text = requests.get("https://fr.wikipedia.org/wiki/Championnat_de_France_de_football_2019-2020")
 
@@ -15,12 +16,22 @@ print("Il y a {} balises table ".format(len(soup.find_all("table"))))
 
 #print(soup.find_all("table",class_="wikitable", limit=1))
 
-team_table = soup.find_all("table",class_="wikitable")[0]
+table = soup.find("table",class_="DebutCarte")
 
-#print(team_table.find("tbody").find_all("tr"))
+#print(table.find("tbody").find_all("a"))
 
-trs = team_table.find("tbody").find_all("tr")[:5]
+clubs = table.find_all("a")[:5]
 
-for tr in trs:
-    print(tr.find("a"))
-    print("---------------------")
+df = pd.DataFrame(columns=["Club","URL"])
+
+for club in clubs:
+    if club.find("img"):
+        continue
+
+    df = df.append({"URL" : club.get("href"), "Club" : club.getText()}, ignore_index=True)
+    print("URL : {0} , Nom : {1}".format(club.get("href"), club.getText()))
+    print("----------")
+
+print(df)
+df.to_csv("./Club_Web_Scraping.csv")
+df.to_excel("./Club_Web_Scraping.xlsx")
